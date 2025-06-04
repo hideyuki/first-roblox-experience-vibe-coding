@@ -1,7 +1,4 @@
--- 迷路ゲームクライアント（横長ランキングボード対応版）
-print("迷路ゲームクライアントを起動中...")
-
--- サービスの初期化
+-- 迷路ゲームのクライアントUI
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -9,11 +6,6 @@ local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-
--- プレイヤーが完全にロードされるのを待つ
-if not player.Character then
-    player.CharacterAdded:Wait()
-end
 
 -- RemoteEventsの取得
 local remoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
@@ -199,7 +191,7 @@ local function createResultUI(completionTime, rank)
     tween:Play()
 end
 
--- 横長ランキング表示の更新（新レイアウト対応）
+-- ランキング表示の更新
 local function updateRankingDisplay(rankings)
     local rankingBoard = workspace.MazeGame:FindFirstChild("RankingBoard")
     if not rankingBoard then return end
@@ -207,70 +199,68 @@ local function updateRankingDisplay(rankings)
     local rankingGui = rankingBoard:FindFirstChild("RankingGui")
     if not rankingGui then return end
     
-    local leftFrame = rankingGui:FindFirstChild("LeftFrame")
-    local rightFrame = rankingGui:FindFirstChild("RightFrame")
-    if not leftFrame or not rightFrame then return end
+    local rankingFrame = rankingGui:FindFirstChild("RankingFrame")
+    if not rankingFrame then return end
     
-    local leftScrollFrame = leftFrame:FindFirstChild("LeftScrollFrame")
-    local rightScrollFrame = rightFrame:FindFirstChild("RightScrollFrame")
-    if not leftScrollFrame or not rightScrollFrame then return end
-    
-    -- 左側（1位-20位）の更新
-    for i = 1, 20 do
-        local entry = leftScrollFrame:FindFirstChild("LeftEntry" .. i)
-        if entry then
-            local rankLabel = entry:FindFirstChild("RankLabel")
-            local nameLabel = entry:FindFirstChild("NameLabel")
-            local timeLabel = entry:FindFirstChild("TimeLabel")
-            
-            if rankLabel and nameLabel and timeLabel then
-                if rankings[i] then
-                    nameLabel.Text = rankings[i].name
-                    timeLabel.Text = formatTime(rankings[i].time)
-                    
-                    -- トップ3の特別表示
-                    if i <= 3 then
-                        rankLabel.TextColor3 = Color3.new(1, 1, 0) -- 金色
-                        nameLabel.TextColor3 = Color3.new(1, 1, 0.8)
-                    else
-                        rankLabel.TextColor3 = Color3.new(1, 1, 1) -- 白色
-                        nameLabel.TextColor3 = Color3.new(0.8, 0.8, 0.8)
-                    end
-                else
-                    nameLabel.Text = "---"
-                    timeLabel.Text = "--:--"
-                    rankLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
-                    nameLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
-                end
-            end
+    -- 既存のエントリをクリア
+    for _, child in pairs(rankingFrame:GetChildren()) do
+        if child.Name:find("Entry") then
+            child:Destroy()
         end
     end
     
-    -- 右側（21位-40位）の更新
-    for i = 21, 40 do
-        local entry = rightScrollFrame:FindFirstChild("RightEntry" .. i)
-        if entry then
-            local rankLabel = entry:FindFirstChild("RankLabel")
-            local nameLabel = entry:FindFirstChild("NameLabel")
-            local timeLabel = entry:FindFirstChild("TimeLabel")
-            
-            if rankLabel and nameLabel and timeLabel then
-                if rankings[i] then
-                    nameLabel.Text = rankings[i].name
-                    timeLabel.Text = formatTime(rankings[i].time)
-                    rankLabel.TextColor3 = Color3.new(0.9, 0.9, 0.9)
-                    nameLabel.TextColor3 = Color3.new(0.7, 0.7, 0.7)
-                else
-                    nameLabel.Text = "---"
-                    timeLabel.Text = "--:--"
-                    rankLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
-                    nameLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
-                end
-            end
-        end
+    -- 新しいランキングエントリを作成
+    for i = 1, math.min(#rankings, 100) do
+        local entry = rankings[i]
+        
+        local entryFrame = Instance.new("Frame")
+        entryFrame.Name = "Entry" .. i
+        entryFrame.Size = UDim2.new(1, -10, 0, 18)
+        entryFrame.Position = UDim2.new(0, 5, 0, (i-1) * 20)
+        entryFrame.BackgroundTransparency = 1
+        entryFrame.Parent = rankingFrame
+        
+        -- 順位ラベル
+        local rankLabel = Instance.new("TextLabel")
+        rankLabel.Name = "RankLabel"
+        rankLabel.Size = UDim2.new(0.15, 0, 1, 0)
+        rankLabel.Position = UDim2.new(0, 0, 0, 0)
+        rankLabel.BackgroundTransparency = 1
+        rankLabel.Text = "#" .. i
+        rankLabel.TextColor3 = i <= 3 and Color3.new(1, 1, 0) or Color3.new(1, 1, 1)
+        rankLabel.TextScaled = true
+        rankLabel.Font = Enum.Font.SourceSansBold
+        rankLabel.Parent = entryFrame
+        
+        -- 名前ラベル
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Name = "NameLabel"
+        nameLabel.Size = UDim2.new(0.55, 0, 1, 0)
+        nameLabel.Position = UDim2.new(0.15, 0, 0, 0)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.Text = entry.name
+        nameLabel.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+        nameLabel.TextScaled = true
+        nameLabel.Font = Enum.Font.SourceSans
+        nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+        nameLabel.Parent = entryFrame
+        
+        -- 時間ラベル
+        local timeLabel = Instance.new("TextLabel")
+        timeLabel.Name = "TimeLabel"
+        timeLabel.Size = UDim2.new(0.3, 0, 1, 0)
+        timeLabel.Position = UDim2.new(0.7, 0, 0, 0)
+        timeLabel.BackgroundTransparency = 1
+        timeLabel.Text = formatTime(entry.time)
+        timeLabel.TextColor3 = Color3.new(0.6, 0.6, 1)
+        timeLabel.TextScaled = true
+        timeLabel.Font = Enum.Font.Code
+        timeLabel.TextXAlignment = Enum.TextXAlignment.Right
+        timeLabel.Parent = entryFrame
     end
     
-    print("📊 横長ランキングボードを更新しました（" .. #rankings .. " エントリ）")
+    -- CanvasSizeを更新
+    rankingFrame.CanvasSize = UDim2.new(0, 0, 0, #rankings * 20)
 end
 
 -- タイマー更新ループ
@@ -298,7 +288,7 @@ startTimerEvent.OnClientEvent:Connect(function()
         end
     end)
     
-    print("🚀 タイマー開始!")
+    print("タイマー開始!")
 end)
 
 -- ストップタイマーイベント
@@ -319,7 +309,7 @@ stopTimerEvent.OnClientEvent:Connect(function(completionTime, rank)
     -- 結果UIを表示
     createResultUI(completionTime, rank)
     
-    print("🏆 ゴール! 時間: " .. formatTime(completionTime) .. " 順位: " .. (rank or "不明"))
+    print("ゴール! 時間: " .. formatTime(completionTime) .. " 順位: " .. (rank or "不明"))
 end)
 
 -- ランキング更新イベント
@@ -330,11 +320,8 @@ end)
 -- 初期化
 local function initialize()
     createTimerUI()
-    print("✅ 迷路ゲームクライアントUI初期化完了!")
-    print("📊 横長ランキングボード対応版")
+    print("迷路ゲームクライアントUI初期化完了!")
 end
 
 -- クライアント起動時に初期化
 initialize()
-
-print("✅ 迷路ゲームクライアントが正常に起動しました!")

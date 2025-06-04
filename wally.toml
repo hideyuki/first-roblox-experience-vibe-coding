@@ -6,3 +6,28 @@ realm = "shared"
 private = true
 
 [dependencies]
+# イベント管理とシグナル
+signal = "lucasmz/signal@^1.0.0"
+
+# DataStore管理とプロファイル
+profileservice = "madstudioroblox/profileservice@^5.0.0"
+
+# UI管理とスクリーン管理
+roact = "roblox/roact@^1.4.4"
+
+# ユーティリティライブラリ
+llama = "freddylist/llama@^1.1.0"
+
+# タイマーとスケジューリング
+timer = "egomoose/timer@^1.0.0"
+
+# テーブル操作ユーティリティ
+tableutil = "stravant/tableutil@^1.0.0"
+
+[server-dependencies]
+# サーバー専用の依存関係
+datastore2 = "kampfkarren/datastore2@^2.2.0"
+
+[dev-dependencies]
+# 開発用の依存関係
+testez = "roblox/testez@^0.4.1"

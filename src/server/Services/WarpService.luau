@@ -147,29 +147,27 @@ local function buildWarpSystem(mazeGame)
     return warpFolder
 end
 
--- 地面設置ランキングボード構築（完全版）
-local function buildGroundRankingBoard(mazeGame)
-    -- 既存のランキングボードを削除
-    local existingBoard = mazeGame:FindFirstChild("RankingBoard")
-    if existingBoard then
-        existingBoard:Destroy()
-    end
-    
-    -- 新しいランキングボード（右側配置、高さ調整）
+-- ランキングボード構築（共通関数）
+local function createRankingBoard(name, position, parent)
     local rankingBoard = Instance.new("Part")
-    rankingBoard.Name = "RankingBoard"
+    rankingBoard.Name = name
     rankingBoard.Size = Vector3.new(20, 12, 2)
-    rankingBoard.Position = Vector3.new(20, 8, 135)  -- 右側奥に配置、高さ調整
+    rankingBoard.Position = position
     rankingBoard.Anchored = true
     rankingBoard.Material = Enum.Material.SmoothPlastic
     rankingBoard.BrickColor = BrickColor.new("Dark stone grey")
-    rankingBoard.Parent = mazeGame
+    rankingBoard.Parent = parent
     
+    return rankingBoard
+end
+
+-- ランキングGUI作成（共通関数）
+local function createRankingGui(parent)
     -- ランキング表示用のSurfaceGui
     local rankingGui = Instance.new("SurfaceGui")
     rankingGui.Name = "RankingGui"
     rankingGui.Face = Enum.NormalId.Front
-    rankingGui.Parent = rankingBoard
+    rankingGui.Parent = parent
     
     -- タイトル
     local titleFrame = Instance.new("Frame")
@@ -314,8 +312,43 @@ local function buildGroundRankingBoard(mazeGame)
         timeLabel.Parent = entryFrame
     end
     
-    print("📊 完全な地面設置ランキングボードを構築しました")
+    return rankingGui
+end
+
+-- ゴールエリアランキングボード構築
+local function buildGoalRankingBoard(mazeGame)
+    -- 既存のランキングボードを削除
+    local existingBoard = mazeGame:FindFirstChild("RankingBoard")
+    if existingBoard then
+        existingBoard:Destroy()
+    end
+    
+    -- 新しいランキングボード（右側配置、高さ調整）
+    local rankingBoard = createRankingBoard("RankingBoard", Vector3.new(20, 8, 135), mazeGame)
+    
+    -- ランキングGUI作成
+    createRankingGui(rankingBoard)
+    
+    print("📊 ゴールエリアランキングボードを構築しました")
     return rankingBoard
+end
+
+-- スタートエリアランキングボード構築
+local function buildStartRankingBoard(mazeGame)
+    -- 既存のスタートエリアランキングボードを削除
+    local existingBoard = mazeGame:FindFirstChild("StartRankingBoard")
+    if existingBoard then
+        existingBoard:Destroy()
+    end
+    
+    -- スタートゲートの右側にランキングボード配置（z=-95の右側）
+    local startRankingBoard = createRankingBoard("StartRankingBoard", Vector3.new(20, 8, -95), mazeGame)
+    
+    -- ランキングGUI作成
+    createRankingGui(startRankingBoard)
+    
+    print("📊 スタートエリアランキングボードを構築しました")
+    return startRankingBoard
 end
 
 -- メイン初期化関数
@@ -333,8 +366,11 @@ function WarpService.Initialize()
         return
     end
     
-    -- ランキングボード構築
-    buildGroundRankingBoard(mazeGame)
+    -- ゴールエリアランキングボード構築
+    buildGoalRankingBoard(mazeGame)
+    
+    -- スタートエリアランキングボード構築
+    buildStartRankingBoard(mazeGame)
     
     -- ワープシステム構築
     buildWarpSystem(mazeGame)

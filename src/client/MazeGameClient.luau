@@ -191,76 +191,74 @@ local function createResultUI(completionTime, rank)
     tween:Play()
 end
 
--- ランキング表示の更新
-local function updateRankingDisplay(rankings)
-    local rankingBoard = workspace.MazeGame:FindFirstChild("RankingBoard")
+-- ランキング表示の更新（単一ボード用）
+local function updateSingleRankingBoard(rankingBoard, rankings)
     if not rankingBoard then return end
     
     local rankingGui = rankingBoard:FindFirstChild("RankingGui")
     if not rankingGui then return end
     
-    local rankingFrame = rankingGui:FindFirstChild("RankingFrame")
-    if not rankingFrame then return end
-    
-    -- 既存のエントリをクリア
-    for _, child in pairs(rankingFrame:GetChildren()) do
-        if child.Name:find("Entry") then
-            child:Destroy()
+    -- 左側フレーム（1-20位）の更新
+    local leftFrame = rankingGui:FindFirstChild("LeftFrame")
+    if leftFrame then
+        local leftScrollFrame = leftFrame:FindFirstChild("LeftScrollFrame")
+        if leftScrollFrame then
+            for i = 1, 20 do
+                local entryFrame = leftScrollFrame:FindFirstChild("LeftEntry" .. i)
+                if entryFrame and rankings[i] then
+                    local nameLabel = entryFrame:FindFirstChild("NameLabel")
+                    local timeLabel = entryFrame:FindFirstChild("TimeLabel")
+                    if nameLabel then nameLabel.Text = rankings[i].name end
+                    if timeLabel then timeLabel.Text = formatTime(rankings[i].time) end
+                else
+                    if entryFrame then
+                        local nameLabel = entryFrame:FindFirstChild("NameLabel")
+                        local timeLabel = entryFrame:FindFirstChild("TimeLabel")
+                        if nameLabel then nameLabel.Text = "---" end
+                        if timeLabel then timeLabel.Text = "--:--" end
+                    end
+                end
+            end
         end
     end
     
-    -- 新しいランキングエントリを作成
-    for i = 1, math.min(#rankings, 100) do
-        local entry = rankings[i]
-        
-        local entryFrame = Instance.new("Frame")
-        entryFrame.Name = "Entry" .. i
-        entryFrame.Size = UDim2.new(1, -10, 0, 18)
-        entryFrame.Position = UDim2.new(0, 5, 0, (i-1) * 20)
-        entryFrame.BackgroundTransparency = 1
-        entryFrame.Parent = rankingFrame
-        
-        -- 順位ラベル
-        local rankLabel = Instance.new("TextLabel")
-        rankLabel.Name = "RankLabel"
-        rankLabel.Size = UDim2.new(0.15, 0, 1, 0)
-        rankLabel.Position = UDim2.new(0, 0, 0, 0)
-        rankLabel.BackgroundTransparency = 1
-        rankLabel.Text = "#" .. i
-        rankLabel.TextColor3 = i <= 3 and Color3.new(1, 1, 0) or Color3.new(1, 1, 1)
-        rankLabel.TextScaled = true
-        rankLabel.Font = Enum.Font.SourceSansBold
-        rankLabel.Parent = entryFrame
-        
-        -- 名前ラベル
-        local nameLabel = Instance.new("TextLabel")
-        nameLabel.Name = "NameLabel"
-        nameLabel.Size = UDim2.new(0.55, 0, 1, 0)
-        nameLabel.Position = UDim2.new(0.15, 0, 0, 0)
-        nameLabel.BackgroundTransparency = 1
-        nameLabel.Text = entry.name
-        nameLabel.TextColor3 = Color3.new(0.8, 0.8, 0.8)
-        nameLabel.TextScaled = true
-        nameLabel.Font = Enum.Font.SourceSans
-        nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-        nameLabel.Parent = entryFrame
-        
-        -- 時間ラベル
-        local timeLabel = Instance.new("TextLabel")
-        timeLabel.Name = "TimeLabel"
-        timeLabel.Size = UDim2.new(0.3, 0, 1, 0)
-        timeLabel.Position = UDim2.new(0.7, 0, 0, 0)
-        timeLabel.BackgroundTransparency = 1
-        timeLabel.Text = formatTime(entry.time)
-        timeLabel.TextColor3 = Color3.new(0.6, 0.6, 1)
-        timeLabel.TextScaled = true
-        timeLabel.Font = Enum.Font.Code
-        timeLabel.TextXAlignment = Enum.TextXAlignment.Right
-        timeLabel.Parent = entryFrame
+    -- 右側フレーム（21-40位）の更新
+    local rightFrame = rankingGui:FindFirstChild("RightFrame")
+    if rightFrame then
+        local rightScrollFrame = rightFrame:FindFirstChild("RightScrollFrame")
+        if rightScrollFrame then
+            for i = 21, 40 do
+                local entryFrame = rightScrollFrame:FindFirstChild("RightEntry" .. i)
+                if entryFrame and rankings[i] then
+                    local nameLabel = entryFrame:FindFirstChild("NameLabel")
+                    local timeLabel = entryFrame:FindFirstChild("TimeLabel")
+                    if nameLabel then nameLabel.Text = rankings[i].name end
+                    if timeLabel then timeLabel.Text = formatTime(rankings[i].time) end
+                else
+                    if entryFrame then
+                        local nameLabel = entryFrame:FindFirstChild("NameLabel")
+                        local timeLabel = entryFrame:FindFirstChild("TimeLabel")
+                        if nameLabel then nameLabel.Text = "---" end
+                        if timeLabel then timeLabel.Text = "--:--" end
+                    end
+                end
+            end
+        end
     end
+end
+
+-- ランキング表示の更新（両方のボードを更新）
+local function updateRankingDisplay(rankings)
+    local mazeGame = workspace:FindFirstChild("MazeGame")
+    if not mazeGame then return end
     
-    -- CanvasSizeを更新
-    rankingFrame.CanvasSize = UDim2.new(0, 0, 0, #rankings * 20)
+    -- ゴールエリアのランキングボード更新
+    local goalRankingBoard = mazeGame:FindFirstChild("RankingBoard")
+    updateSingleRankingBoard(goalRankingBoard, rankings)
+    
+    -- スタートエリアのランキングボード更新
+    local startRankingBoard = mazeGame:FindFirstChild("StartRankingBoard")
+    updateSingleRankingBoard(startRankingBoard, rankings)
 end
 
 -- タイマー更新ループ

@@ -354,6 +354,21 @@ end
 local function onPlayerAdded(player)
     initializePlayerState(player)
     print("👋 " .. player.Name .. " の状態を初期化しました")
+    
+    -- 少し待ってからランキングデータを送信（クライアントの準備を待つ）
+    spawn(function()
+        wait(1)
+        if remoteEvents and remoteEvents.update then
+            local success, error = pcall(function()
+                remoteEvents.update:FireClient(player, globalRankings)
+            end)
+            if success then
+                print("📊 " .. player.Name .. " に初回ランキングデータを送信しました")
+            else
+                warn("❌ " .. player.Name .. " への初回ランキング送信失敗: " .. tostring(error))
+            end
+        end
+    end)
 end
 
 -- 初期化

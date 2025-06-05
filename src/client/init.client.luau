@@ -201,76 +201,91 @@ end
 
 -- 横長ランキング表示の更新（新レイアウト対応）
 local function updateRankingDisplay(rankings)
-    local rankingBoard = workspace.MazeGame:FindFirstChild("RankingBoard")
-    if not rankingBoard then return end
-    
-    local rankingGui = rankingBoard:FindFirstChild("RankingGui")
-    if not rankingGui then return end
-    
-    local leftFrame = rankingGui:FindFirstChild("LeftFrame")
-    local rightFrame = rankingGui:FindFirstChild("RightFrame")
-    if not leftFrame or not rightFrame then return end
-    
-    local leftScrollFrame = leftFrame:FindFirstChild("LeftScrollFrame")
-    local rightScrollFrame = rightFrame:FindFirstChild("RightScrollFrame")
-    if not leftScrollFrame or not rightScrollFrame then return end
-    
-    -- 左側（1位-20位）の更新
-    for i = 1, 20 do
-        local entry = leftScrollFrame:FindFirstChild("LeftEntry" .. i)
-        if entry then
-            local rankLabel = entry:FindFirstChild("RankLabel")
-            local nameLabel = entry:FindFirstChild("NameLabel")
-            local timeLabel = entry:FindFirstChild("TimeLabel")
-            
-            if rankLabel and nameLabel and timeLabel then
-                if rankings[i] then
-                    nameLabel.Text = rankings[i].name
-                    timeLabel.Text = formatTime(rankings[i].time)
-                    
-                    -- トップ3の特別表示
-                    if i <= 3 then
-                        rankLabel.TextColor3 = Color3.new(1, 1, 0) -- 金色
-                        nameLabel.TextColor3 = Color3.new(1, 1, 0.8)
+    -- 両方のランキングボードを更新する関数
+    local function updateSingleBoard(boardName)
+        local rankingBoard = workspace.MazeGame:FindFirstChild(boardName)
+        if not rankingBoard then return false end
+        
+        local rankingGui = rankingBoard:FindFirstChild("RankingGui")
+        if not rankingGui then return false end
+        
+        local leftFrame = rankingGui:FindFirstChild("LeftFrame")
+        local rightFrame = rankingGui:FindFirstChild("RightFrame")
+        if not leftFrame or not rightFrame then return false end
+        
+        local leftScrollFrame = leftFrame:FindFirstChild("LeftScrollFrame")
+        local rightScrollFrame = rightFrame:FindFirstChild("RightScrollFrame")
+        if not leftScrollFrame or not rightScrollFrame then return false end
+        
+        -- 左側（1位-20位）の更新
+        for i = 1, 20 do
+            local entry = leftScrollFrame:FindFirstChild("LeftEntry" .. i)
+            if entry then
+                local rankLabel = entry:FindFirstChild("RankLabel")
+                local nameLabel = entry:FindFirstChild("NameLabel")
+                local timeLabel = entry:FindFirstChild("TimeLabel")
+                
+                if rankLabel and nameLabel and timeLabel then
+                    if rankings[i] then
+                        nameLabel.Text = rankings[i].name
+                        timeLabel.Text = formatTime(rankings[i].time)
+                        
+                        -- トップ3の特別表示
+                        if i <= 3 then
+                            rankLabel.TextColor3 = Color3.new(1, 1, 0) -- 金色
+                            nameLabel.TextColor3 = Color3.new(1, 1, 0.8)
+                        else
+                            rankLabel.TextColor3 = Color3.new(1, 1, 1) -- 白色
+                            nameLabel.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+                        end
                     else
-                        rankLabel.TextColor3 = Color3.new(1, 1, 1) -- 白色
-                        nameLabel.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+                        nameLabel.Text = "---"
+                        timeLabel.Text = "--:--"
+                        rankLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
+                        nameLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
                     end
-                else
-                    nameLabel.Text = "---"
-                    timeLabel.Text = "--:--"
-                    rankLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
-                    nameLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
                 end
             end
         end
-    end
-    
-    -- 右側（21位-40位）の更新
-    for i = 21, 40 do
-        local entry = rightScrollFrame:FindFirstChild("RightEntry" .. i)
-        if entry then
-            local rankLabel = entry:FindFirstChild("RankLabel")
-            local nameLabel = entry:FindFirstChild("NameLabel")
-            local timeLabel = entry:FindFirstChild("TimeLabel")
-            
-            if rankLabel and nameLabel and timeLabel then
-                if rankings[i] then
-                    nameLabel.Text = rankings[i].name
-                    timeLabel.Text = formatTime(rankings[i].time)
-                    rankLabel.TextColor3 = Color3.new(0.9, 0.9, 0.9)
-                    nameLabel.TextColor3 = Color3.new(0.7, 0.7, 0.7)
-                else
-                    nameLabel.Text = "---"
-                    timeLabel.Text = "--:--"
-                    rankLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
-                    nameLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
+        
+        -- 右側（21位-40位）の更新
+        for i = 21, 40 do
+            local entry = rightScrollFrame:FindFirstChild("RightEntry" .. i)
+            if entry then
+                local rankLabel = entry:FindFirstChild("RankLabel")
+                local nameLabel = entry:FindFirstChild("NameLabel")
+                local timeLabel = entry:FindFirstChild("TimeLabel")
+                
+                if rankLabel and nameLabel and timeLabel then
+                    if rankings[i] then
+                        nameLabel.Text = rankings[i].name
+                        timeLabel.Text = formatTime(rankings[i].time)
+                        rankLabel.TextColor3 = Color3.new(0.9, 0.9, 0.9)
+                        nameLabel.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+                    else
+                        nameLabel.Text = "---"
+                        timeLabel.Text = "--:--"
+                        rankLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
+                        nameLabel.TextColor3 = Color3.new(0.5, 0.5, 0.5)
+                    end
                 end
             end
         end
+        
+        return true
     end
     
-    print("📊 横長ランキングボードを更新しました（" .. #rankings .. " エントリ）")
+    -- ゴールエリアのランキングボードを更新
+    local goalBoardUpdated = updateSingleBoard("RankingBoard")
+    
+    -- スタートエリアのランキングボードを更新
+    local startBoardUpdated = updateSingleBoard("StartRankingBoard")
+    
+    local updatedCount = 0
+    if goalBoardUpdated then updatedCount = updatedCount + 1 end
+    if startBoardUpdated then updatedCount = updatedCount + 1 end
+    
+    print("📊 ランキングボードを更新しました（" .. #rankings .. " エントリ、" .. updatedCount .. " ボード）")
 end
 
 -- タイマー更新ループ
